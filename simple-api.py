@@ -10,17 +10,18 @@ import re
 
 app = FastAPI()
 
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") if os.getenv("ALLOWED_HOSTS") else ["*"]
+
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change this to specific origins for security
+    allow_origins=ALLOWED_HOSTS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 SECRET_KEY = os.getenv("SECRET_KEY", "defaultsecret")
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") if os.getenv("ALLOWED_HOSTS") else None
 STORAGE_DIR = Path("/data/images")
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 THUMBS_DIR = STORAGE_DIR / "thumbs"
