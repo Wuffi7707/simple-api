@@ -23,6 +23,8 @@ SECRET_KEY = os.getenv("SECRET_KEY", "defaultsecret")
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") if os.getenv("ALLOWED_HOSTS") else None
 STORAGE_DIR = Path("/data/images")
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+THUMBS_DIR = STORAGE_DIR / "thumbs"
+THUMBS_DIR.mkdir(parents=True, exist_ok=True)
 
 def sanitize_filename(name: str) -> str:
     name = name.replace("..", "").replace("/", "").replace("\\", "")
@@ -41,7 +43,7 @@ async def upload_image(file: UploadFile = File(...), secret: str = Header(None))
     filename = f"{uuid.uuid4().hex}.{ext}"
     
     img_path = STORAGE_DIR / filename
-    thumb_path = STORAGE_DIR / "thumbs" /  f"thumb_{filename}"
+    thumb_path = THUMBS_DIR /  f"thumb_{filename}"
     
     with img_path.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
@@ -59,7 +61,7 @@ def get_image(filename: str, thumb: bool = Query(False)):
     filename = sanitize_filename(filename)
     
     file_path = STORAGE_DIR / filename
-    thumb_path = STORAGE_DIR / "thumbs" / f"thumb_{filename}"
+    thumb_path = THUMBS_DIR / f"thumb_{filename}"
     
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Image not found")
@@ -75,7 +77,7 @@ def delete_image(filename: str, secret: str = Header(None)):
     filename = sanitize_filename(filename)
     
     file_path = STORAGE_DIR / filename
-    thumb_path = STORAGE_DIR / "thumbs" / f"thumb_{filename}"
+    thumb_path = THUMBS_DIR / f"thumb_{filename}"
     
     if file_path.exists():
         file_path.unlink()
