@@ -2,9 +2,9 @@
 A very simple API for managing Images. Desgined for work in a Docker container.
 
 ## env Variable
-SECRET_KEY -> Secret Key used for Uploading and Deleting Images
-ALLOWED_HOSTS -> Allowed Hosts, that can upload and fetch images
-ALLOWED_EDIT_HOSTS -> Allowed Hosts, that can upload images
+- SECRET_KEY -> Secret Key used for Uploading and Deleting Images
+- ALLOWED_HOSTS -> Allowed Hosts, that can upload and fetch images
+- ALLOWED_EDIT_HOSTS -> Allowed Hosts, that can upload images
 
 ## Installation
 Clone this repository
