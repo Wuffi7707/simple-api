@@ -15,6 +15,7 @@ EXPOSE 8000
 
 # Define environment variable for SECRET_KEY
 ENV SECRET_KEY=mysecretkey
+ENV ALLOWED_HOSTS=*
 
 # Run FastAPI app with Uvicorn
 CMD ["uvicorn", "simple-api:app", "--host", "0.0.0.0", "--port", "8000"]
