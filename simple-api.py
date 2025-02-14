@@ -30,12 +30,9 @@ def sanitize_filename(name: str) -> str:
 
 # Upload image
 @app.post("/upload")
-async def upload_image(file: UploadFile = File(...), secret: str = Header(None), host: str = Header(None)):
+async def upload_image(file: UploadFile = File(...), secret: str = Header(None)):
     if secret != SECRET_KEY:
         raise HTTPException(status_code=403, detail="Unauthorized")
-    
-    if ALLOWED_HOSTS and host not in ALLOWED_HOSTS:
-        raise HTTPException(status_code=403, detail="Host not allowed")
     
     if file.content_type not in ["image/png", "image/jpeg", "image/jpg", "image/webp"]:
         raise HTTPException(status_code=400, detail="Invalid file type")
@@ -71,12 +68,9 @@ def get_image(filename: str, thumb: bool = Query(False)):
 
 # Delete image
 @app.delete("/delete/{filename}")
-def delete_image(filename: str, secret: str = Header(None), host: str = Header(None)):
+def delete_image(filename: str, secret: str = Header(None)):
     if secret != SECRET_KEY:
         raise HTTPException(status_code=403, detail="Unauthorized")
-    
-    if ALLOWED_HOSTS and host not in ALLOWED_HOSTS:
-        raise HTTPException(status_code=403, detail="Host not allowed")
     
     filename = sanitize_filename(filename)
     
