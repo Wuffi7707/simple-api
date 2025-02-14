@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Test Form</title>
+  </head>
+  <body>
+    <h2>Upload Image</h2>
+    <form id="uploadForm">
+      <input type="file" id="imageFile" required />
+      <input type="text" id="secretKey" placeholder="Secret Key" required />
+      <input type="text" id="uploadUrl" placeholder="Upload URL" required />
+      <button type="submit">Upload</button>
+    </form>
+    <p id="uploadResult"></p>
+
+    <h2>Get Image</h2>
+    <input type="text" id="imageUrl" placeholder="Image URL" />
+    <button onclick="getImage()">Fetch Image</button>
+    <br /><br />
+    <img id="displayImage" style="max-width: 300px; display: none" />
+
+    <script>
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          let fileInput = document.getElementById("imageFile");
+          let secretKey = document.getElementById("secretKey").value;
+          let uploadUrl = document.getElementById("uploadUrl").value;
+          let formData = new FormData();
+          formData.append("file", fileInput.files[0]);
+
+          let response = await fetch(uploadUrl, {
+            method: "POST",
+            body: formData,
+            headers: { secret: secretKey },
+          });
+
+          let result = await response.json();
+          document.getElementById("uploadResult").textContent =
+            JSON.stringify(result);
+        });
+
+      function getImage() {
+        let url = document.getElementById("imageUrl").value;
+        let img = document.getElementById("displayImage");
+        img.src = url;
+        img.style.display = "block";
+      }
+    </script>
+  </body>
+</html>
