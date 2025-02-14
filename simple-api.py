@@ -37,14 +37,14 @@ async def upload_image(file: UploadFile = File(...), secret: str = Header(None),
     if ALLOWED_HOSTS and host not in ALLOWED_HOSTS:
         raise HTTPException(status_code=403, detail="Host not allowed")
     
-    rand1, rand2 = sanitize_filename(uuid.uuid4().hex[:6]), sanitize_filename(uuid.uuid4().hex[:6])
-    filename = sanitize_filename(file.filename)
+    if file.content_type not in ["image/png", "image/jpeg", "image/jpg", "image/webp"]:
+        raise HTTPException(status_code=400, detail="Invalid file type")
     
-    save_dir = STORAGE_DIR / rand1 / rand2
-    save_dir.mkdir(parents=True, exist_ok=True)
+    ext = file.filename.split('.')[-1]
+    filename = f"{uuid.uuid4().hex}.{ext}"
     
-    img_path = save_dir / filename
-    thumb_path = save_dir / f"thumb_{filename}"
+    img_path = STORAGE_DIR / filename
+    thumb_path = STORAGE_DIR / "thumbs" /  f"thumb_{filename}"
     
     with img_path.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
@@ -54,15 +54,15 @@ async def upload_image(file: UploadFile = File(...), secret: str = Header(None),
         img.thumbnail((200, 200))
         img.save(thumb_path)
     
-    return {"url": f"/images/{rand1}/{rand2}/{filename}"}
+    return {"url": f"/images/{filename}"}
 
 # Get image
-@app.get("/images/{rand1}/{rand2}/{filename}")
-def get_image(rand1: str, rand2: str, filename: str, thumb: bool = Query(False)):
-    rand1, rand2, filename = sanitize_filename(rand1), sanitize_filename(rand2), sanitize_filename(filename)
+@app.get("/images/{filename}")
+def get_image(filename: str, thumb: bool = Query(False)):
+    filename = sanitize_filename(filename)
     
-    file_path = STORAGE_DIR / rand1 / rand2 / filename
-    thumb_path = STORAGE_DIR / rand1 / rand2 / f"thumb_{filename}"
+    file_path = STORAGE_DIR / filename
+    thumb_path = STORAGE_DIR / "thumbs" / f"thumb_{filename}"
     
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Image not found")
@@ -70,18 +70,18 @@ def get_image(rand1: str, rand2: str, filename: str, thumb: bool = Query(False))
     return FileResponse(thumb_path if thumb else file_path)
 
 # Delete image
-@app.delete("/delete/{rand1}/{rand2}/{filename}")
-def delete_image(rand1: str, rand2: str, filename: str, secret: str = Header(None), host: str = Header(None)):
+@app.delete("/delete/{filename}")
+def delete_image(filename: str, secret: str = Header(None), host: str = Header(None)):
     if secret != SECRET_KEY:
         raise HTTPException(status_code=403, detail="Unauthorized")
     
     if ALLOWED_HOSTS and host not in ALLOWED_HOSTS:
         raise HTTPException(status_code=403, detail="Host not allowed")
     
-    rand1, rand2, filename = sanitize_filename(rand1), sanitize_filename(rand2), sanitize_filename(filename)
+    filename = sanitize_filename(filename)
     
-    file_path = STORAGE_DIR / rand1 / rand2 / filename
-    thumb_path = STORAGE_DIR / rand1 / rand2 / f"thumb_{filename}"
+    file_path = STORAGE_DIR / filename
+    thumb_path = STORAGE_DIR / "thumbs" / f"thumb_{filename}"
     
     if file_path.exists():
         file_path.unlink()
