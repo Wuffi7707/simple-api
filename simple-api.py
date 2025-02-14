@@ -22,6 +22,7 @@ app.add_middleware(
 )
 
 SECRET_KEY = os.getenv("SECRET_KEY", "defaultsecret")
+ALLOWED_EDIT_HOSTS = os.getenv("ALLOWED_EDIT_HOSTS", "").split(",") if os.getenv("ALLOWED_EDIT_HOSTS") else None
 STORAGE_DIR = Path("/data/images")
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 THUMBS_DIR = STORAGE_DIR / "thumbs"
@@ -33,9 +34,12 @@ def sanitize_filename(name: str) -> str:
 
 # Upload image
 @app.post("/upload")
-async def upload_image(file: UploadFile = File(...), secret: str = Header(None)):
+async def upload_image(file: UploadFile = File(...), secret: str = Header(None), host: str = Header(None)):
     if secret != SECRET_KEY:
         raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    if ALLOWED_EDIT_HOSTS and host not in ALLOWED_EDIT_HOSTS:
+        raise HTTPException(status_code=403, detail="Host not allowed")
     
     if file.content_type not in ["image/png", "image/jpeg", "image/jpg", "image/webp"]:
         raise HTTPException(status_code=400, detail="Invalid file type")
@@ -71,9 +75,12 @@ def get_image(filename: str, thumb: bool = Query(False)):
 
 # Delete image
 @app.delete("/delete/{filename}")
-def delete_image(filename: str, secret: str = Header(None)):
+def delete_image(filename: str, secret: str = Header(None), host: str = Header(None)):
     if secret != SECRET_KEY:
         raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    if ALLOWED_EDIT_HOSTS and host not in ALLOWED_EDIT_HOSTS:
+        raise HTTPException(status_code=403, detail="Host not allowed")
     
     filename = sanitize_filename(filename)
     
